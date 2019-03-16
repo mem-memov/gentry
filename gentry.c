@@ -108,6 +108,7 @@ int main(int argc, char *argv[])
     }
 
     File_destruct(file);
+    FilePath_destruct(path);
 
     return 0;
 }
