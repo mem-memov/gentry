@@ -83,12 +83,10 @@ unsigned char File_hasNextCharacter(struct File * this)
     if ( feof(this->descriptor) ) {
         fclose(this->descriptor);
         this->descriptor = NULL;
-        result = 0;
-    } else {
-        result = 1;
+        return 0;
     }
 
-    return result;
+    return 1;
 }
 
 unsigned char File_getNextCharacter(struct File * this)
