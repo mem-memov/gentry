@@ -47,10 +47,8 @@ struct File * FilePath_createFile(struct FilePath * this)
 
 struct File {
     char * path;
-    unsigned char isOpen;
     FILE * descriptor;
     int character;
-    unsigned char isCharacterUpdated;
 };
 
 struct File * File_construct(char * path)
@@ -58,8 +56,6 @@ struct File * File_construct(char * path)
     struct File * this = malloc(sizeof(struct File));
 
     this->path = path;
-
-    this->isOpen = 0;
     this->descriptor = NULL;
     this->character = 0;
 
@@ -76,13 +72,10 @@ void File_destruct(struct File * this)
 
 unsigned char File_hasNextCharacter(struct File * this)
 {
-    unsigned char hasNextCharacter;
+    unsigned char result;
 
-    if ( ! this->isOpen ) {
-
+    if ( NULL == this->descriptor ) {
         this->descriptor = fopen(this->path, "r");
-        this->isOpen = 1;
-
     }
 
     this->character = fgetc(this->descriptor);
@@ -90,13 +83,12 @@ unsigned char File_hasNextCharacter(struct File * this)
     if ( feof(this->descriptor) ) {
         fclose(this->descriptor);
         this->descriptor = NULL;
-        this->isOpen = 0;
-        hasNextCharacter = 0;
+        result = 0;
     } else {
-        hasNextCharacter = 1;
+        result = 1;
     }
 
-    return hasNextCharacter;
+    return result;
 }
 
 unsigned char File_getNextCharacter(struct File * this)
