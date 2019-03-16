@@ -72,8 +72,6 @@ void File_destruct(struct File * this)
 
 unsigned char File_hasNextCharacter(struct File * this)
 {
-    unsigned char result;
-
     if ( NULL == this->descriptor ) {
         this->descriptor = fopen(this->path, "r");
     }
