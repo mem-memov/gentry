@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
     unsigned char character;
     unsigned char characters[256];
     unsigned char tagDetected;
+    unsigned char isTagClosing;
     int tagLength;
 
     struct FilePath * path = FilePath_construct(rootPath, filePath);
@@ -109,20 +110,24 @@ int main(int argc, char *argv[])
     while (File_hasNextCharacter(file)) {
 
         character = File_getNextCharacter(file);
-        printf("%c \n", character);
 
-        if ('<' == character) {
+        if ( '<' == character ) {
             tagDetected = 1;
             tagLength = 0;
+            isTagClosing = 0;
             continue;
         }
-        if ('>' == character) {
+        if ( '>' == character ) {
             tagDetected = 0;
             characters[tagLength] = '\0';
             printf("%s \n", characters);
             continue;
         }
-        if (tagDetected) {
+        if ( tagDetected && 0 == tagLength && '/' == character ) {
+            isTagClosing = 1;
+            continue;
+        }
+        if ( tagDetected ) {
             characters[tagLength] = character;
             tagLength = tagLength + 1;
         }
