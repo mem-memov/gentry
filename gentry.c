@@ -13,6 +13,9 @@ void File_destruct(struct File * this);
 unsigned char File_hasNextCharacter(struct File * this);
 unsigned char File_getNextCharacter(struct File * this);
 
+struct Tag;
+
+
 struct FilePath
 {
     const char * root;
@@ -90,6 +93,30 @@ unsigned char File_hasNextCharacter(struct File * this)
 unsigned char File_getNextCharacter(struct File * this)
 {
     return this->character;
+}
+
+struct Tag
+{
+    char * name;
+    char * value;
+    struct Tag * parent;
+    struct Tag * children;
+    int childrenLength;
+};
+
+struct Tag * Tag_construct(char * name)
+{
+    struct Tag * this = malloc(sizeof(struct Tag));
+
+    this->name = name;
+
+    return this;
+}
+
+void Tag_destruct(struct Tag * this)
+{
+    free(this);
+    this = NULL;
 }
 
 int main(int argc, char *argv[])
