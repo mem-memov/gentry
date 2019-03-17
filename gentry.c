@@ -98,13 +98,34 @@ int main(int argc, char *argv[])
     char * filePath = argv[2];
 
     unsigned char character;
+    unsigned char characters[256];
+    unsigned char tagDetected;
+    int tagLength;
 
     struct FilePath * path = FilePath_construct(rootPath, filePath);
     struct File * file = FilePath_createFile(path);
 
+    tagDetected = 0;
     while (File_hasNextCharacter(file)) {
+
         character = File_getNextCharacter(file);
         printf("%c \n", character);
+
+        if ('<' == character) {
+            tagDetected = 1;
+            tagLength = 0;
+            continue;
+        }
+        if ('>' == character) {
+            tagDetected = 0;
+            characters[tagLength] = '\0';
+            printf("%s \n", characters);
+            continue;
+        }
+        if (tagDetected) {
+            characters[tagLength] = character;
+            tagLength = tagLength + 1;
+        }
     }
 
     File_destruct(file);
