@@ -5,7 +5,7 @@
 struct FilePath;
 struct FilePath * FilePath_construct(const char * root, const char * relative);
 void FilePath_destruct(struct FilePath * this);
-struct File * FilePath_createFile(struct FilePath * this);
+char * FilePath_composeFullPath(struct FilePath * this);
 
 struct File;
 struct File * File_construct(char * path);
@@ -15,6 +15,14 @@ unsigned char File_getNextCharacter(struct File * this);
 
 struct Tag;
 
+struct Element;
+
+struct Document;
+
+struct DocumentBuilder;
+struct DocumentBuilder * DocumentBuilder_construct(struct File * file);
+void DocumentBuilder_destruct(struct DocumentBuilder * this);
+struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this);
 
 struct FilePath
 {
@@ -38,14 +46,12 @@ void FilePath_destruct(struct FilePath * this)
     this = NULL;
 }
 
-struct File * FilePath_createFile(struct FilePath * this)
+char * FilePath_composeFullPath(struct FilePath * this)
 {
     int pathLength = strlen(this->root) + strlen(this->relative);
     char * path = malloc(sizeof(char) * (pathLength  + 1));
     strcat(path, this->root);
     strcat(path, this->relative);
-
-    return File_construct(path);
 }
 
 struct File {
@@ -124,11 +130,80 @@ void Tag_destruct(struct Tag * this)
     this = NULL;
 }
 
-int main(int argc, char *argv[])
+struct Element
 {
-    char * rootPath = argv[1];
-    char * filePath = argv[2];
+    char * name;
+    struct Element * parent;
+};
 
+struct Element * Element_construct(char * name, struct Element * parent)
+{
+    struct Element * this = malloc(sizeof(struct Element));
+
+    int nameLength = strlen(name);
+    this->name = malloc(sizeof(unsigned char) * (nameLength + 1));
+    strcpy(this->name, name);
+
+    this->parent = parent;
+
+    return this;
+}
+
+void Element_destruct(struct Element * this)
+{
+    free(this->name);
+
+    free(this);
+    this = NULL;
+}
+
+struct Document
+{
+    struct Element * root;
+};
+
+struct Document * Document_construct()
+{
+    struct Document * this = malloc(sizeof(struct Document));
+
+    this->root = Element_construct("document", NULL);
+
+    return this;
+}
+
+void Document_destruct(struct Document * this)
+{
+    free(this);
+    this = NULL;
+}
+
+void Document_addTag(struct Document * this, struct Tag * tag)
+{
+    
+}
+
+struct DocumentBuilder
+{
+    struct File * file;
+};
+
+struct DocumentBuilder * DocumentBuilder_construct(struct File * file)
+{
+    struct DocumentBuilder * this = malloc(sizeof(struct DocumentBuilder));
+
+    this->file = file;
+
+    return this;
+}
+
+void DocumentBuilder_destruct(struct DocumentBuilder * this)
+{
+    free(this);
+    this = NULL;
+}
+
+struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this)
+{
     unsigned char character;
     unsigned char characters[256];
     unsigned char tagDetected;
@@ -137,14 +212,13 @@ int main(int argc, char *argv[])
     int tagCount;
     struct Tag * tag;
 
-    struct FilePath * path = FilePath_construct(rootPath, filePath);
-    struct File * file = FilePath_createFile(path);
+    struct Document * document = Document_construct();
 
     tagCount = 0;
     tagDetected = 0;
-    while (File_hasNextCharacter(file)) {
+    while (File_hasNextCharacter(this->file)) {
 
-        character = File_getNextCharacter(file);
+        character = File_getNextCharacter(this->file);
 
         if ( '<' == character ) {
             tagDetected = 1;
@@ -156,6 +230,7 @@ int main(int argc, char *argv[])
             tagDetected = 0;
             characters[tagLength] = '\0';
             tag = Tag_construct(characters, isTagClosing); 
+            Document_addTag(document, tag);
             continue;
         }
         if ( tagDetected && 0 == tagLength && '/' == character ) {
@@ -168,6 +243,21 @@ int main(int argc, char *argv[])
         }
     }
 
+    return document;
+}
+
+int main(int argc, char *argv[])
+{
+    char * rootPath = argv[1];
+    char * filePath = argv[2];
+
+    struct FilePath * path = FilePath_construct(rootPath, filePath);
+    struct File * file = File_construct( FilePath_composeFullPath(path) );
+    struct DocumentBuilder * builder = DocumentBuilder_construct(file);
+    struct Document * document = DocumentBuilder_createDocument(builder);
+
+    Document_destruct(document);
+    DocumentBuilder_destruct(builder);
     File_destruct(file);
     FilePath_destruct(path);
 
