@@ -167,6 +167,7 @@ struct Element
     struct Element * parent;
     struct Element ** children;
     int childCount;
+    char * text;
 };
 
 struct Element * Element_construct(char * name, struct Element * parent)
@@ -180,6 +181,7 @@ struct Element * Element_construct(char * name, struct Element * parent)
     this->parent = parent;
     this->children = NULL;
     this->childCount = 0;
+    this->text = NULL;
 
     return this;
 }
@@ -227,6 +229,43 @@ void Element_addChild(struct Element * this, struct Element * child)
     this->childCount = this->childCount + 1;
 }
 
+unsigned char Element_canContainText(struct Element * this)
+{
+    if ( 0 == strcmp(this->name, "text") ) {
+        return 1;
+    }
+
+    return 0;
+}
+
+void Element_appendCharacter(struct Element * this, char character)
+{
+    char * text;
+    int textLength;
+
+    if ( 0 != strcmp(this->name, "text") ) {
+        exit(1);
+    }
+
+    if ( NULL == this->text ) {
+        this->text = malloc(sizeof(char) * 2);
+        this->text[0] = character;
+        this->text[1] = '\0';
+        return;
+    }
+
+    textLength = strlen(this->text);
+    text = malloc(sizeof(char) * (textLength + 2));
+    strcpy(text, this->text);
+    text[textLength] = character;
+    text[textLength + 1] = '\0';
+
+    free(this->text);
+    this->text = text;
+
+    printf("%s\n", this->text);
+}
+
 struct Document
 {
     struct Element * root;
@@ -255,6 +294,13 @@ void Document_addTag(struct Document * this, struct Tag * tag)
         this->lastElement = Tag_createElement(tag, this->lastElement);
     } else {
         this->lastElement = Element_getParent(this->lastElement);
+    }
+}
+
+void Document_writeText(struct Document * this, unsigned char character)
+{
+    if ( Element_canContainText(this->lastElement) ) {
+        Element_appendCharacter(this->lastElement, character);
     }
 }
 
@@ -316,6 +362,10 @@ struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this)
         if ( tagDetected ) {
             characters[tagLength] = character;
             tagLength = tagLength + 1;
+            continue;
+        }
+        if ( ! tagDetected ) {
+            Document_writeText(document, character);
         }
     }
 
