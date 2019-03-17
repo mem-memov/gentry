@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
         if ( '>' == character ) {
             tagDetected = 0;
             characters[tagLength] = '\0';
-            tags[tagCount] = Tag_construct(characters, isTagClosing);
+            tags[tagCount] = Tag_construct(characters, isTagClosing); // TO cOPY
             printf("%s \n", characters);
             continue;
         }
