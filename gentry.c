@@ -14,8 +14,16 @@ unsigned char File_hasNextCharacter(struct File * this);
 unsigned char File_getNextCharacter(struct File * this);
 
 struct Tag;
+struct Tag * Tag_construct(char * name, unsigned char isClosing);
+void Tag_destruct(struct Tag * this);
+unsigned char Tag_canCreateElement(struct Tag * this);
+struct Element * Tag_createElement(struct Tag * this, struct Element * parent);
 
 struct Element;
+struct Element * Element_construct(char * name, struct Element * parent);
+void Element_destruct(struct Element * this);
+unsigned char Element_isSame(struct Element * this, struct Element * that);
+struct Element * Element_getParent(struct Element * this);
 
 struct Document;
 
@@ -130,6 +138,24 @@ void Tag_destruct(struct Tag * this)
     this = NULL;
 }
 
+unsigned char Tag_canCreateElement(struct Tag * this)
+{
+    if ( this->isClosing ) {
+        return 0;
+    }
+
+    return 1;
+}
+
+struct Element * Tag_createElement(struct Tag * this, struct Element * parent)
+{
+    if ( this->isClosing ) {
+        exit(1);
+    }
+
+    return Element_construct(this->name, parent);
+}
+
 struct Element
 {
     char * name;
@@ -157,9 +183,24 @@ void Element_destruct(struct Element * this)
     this = NULL;
 }
 
+unsigned char Element_isSame(struct Element * this, struct Element * that)
+{
+    if ( this == that ) {
+        return 1;
+    }
+
+    return 0;
+}
+
+struct Element * Element_getParent(struct Element * this)
+{
+    return this->parent;
+}
+
 struct Document
 {
     struct Element * root;
+    struct Element * lastElement;
 };
 
 struct Document * Document_construct()
@@ -167,6 +208,7 @@ struct Document * Document_construct()
     struct Document * this = malloc(sizeof(struct Document));
 
     this->root = Element_construct("document", NULL);
+    this->lastElement = this->root;
 
     return this;
 }
@@ -179,7 +221,11 @@ void Document_destruct(struct Document * this)
 
 void Document_addTag(struct Document * this, struct Tag * tag)
 {
-    
+    if ( Tag_canCreateElement(tag) ) {
+        this->lastElement = Tag_createElement(tag, this->lastElement);
+    } else {
+        this->lastElement = Element_getParent(this->lastElement);
+    }
 }
 
 struct DocumentBuilder
