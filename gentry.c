@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     unsigned char isTagClosing;
     int tagLength;
     int tagCount;
-    struct Tag * tags[511];
+    struct Tag * tag;
 
     struct FilePath * path = FilePath_construct(rootPath, filePath);
     struct File * file = FilePath_createFile(path);
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
         if ( '>' == character ) {
             tagDetected = 0;
             characters[tagLength] = '\0';
-            tags[tagCount] = Tag_construct(characters, isTagClosing); 
+            tag = Tag_construct(characters, isTagClosing); 
             continue;
         }
         if ( tagDetected && 0 == tagLength && '/' == character ) {
