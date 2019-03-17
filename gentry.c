@@ -98,23 +98,23 @@ unsigned char File_getNextCharacter(struct File * this)
 struct Tag
 {
     char * name;
-    char * value;
-    struct Tag * parent;
-    struct Tag * children;
-    int childrenLength;
+    unsigned char isClosing;
 };
 
-struct Tag * Tag_construct(char * name)
+struct Tag * Tag_construct(char * name, unsigned char isClosing)
 {
     struct Tag * this = malloc(sizeof(struct Tag));
 
     this->name = name;
+    this->isClosing = isClosing;
 
     return this;
 }
 
 void Tag_destruct(struct Tag * this)
 {
+    free(this->name);
+
     free(this);
     this = NULL;
 }
@@ -129,10 +129,13 @@ int main(int argc, char *argv[])
     unsigned char tagDetected;
     unsigned char isTagClosing;
     int tagLength;
+    int tagCount;
+    struct Tag * tags[511];
 
     struct FilePath * path = FilePath_construct(rootPath, filePath);
     struct File * file = FilePath_createFile(path);
 
+    tagCount = 0;
     tagDetected = 0;
     while (File_hasNextCharacter(file)) {
 
@@ -147,6 +150,7 @@ int main(int argc, char *argv[])
         if ( '>' == character ) {
             tagDetected = 0;
             characters[tagLength] = '\0';
+            tags[tagCount] = Tag_construct(characters, isTagClosing);
             printf("%s \n", characters);
             continue;
         }
