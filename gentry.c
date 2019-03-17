@@ -24,6 +24,7 @@ struct Element * Element_construct(char * name, struct Element * parent);
 void Element_destruct(struct Element * this);
 unsigned char Element_isSame(struct Element * this, struct Element * that);
 struct Element * Element_getParent(struct Element * this);
+void Element_addChild(struct Element * this, struct Element * child);
 
 struct Document;
 
@@ -153,13 +154,19 @@ struct Element * Tag_createElement(struct Tag * this, struct Element * parent)
         exit(1);
     }
 
-    return Element_construct(this->name, parent);
+    struct Element * element = Element_construct(this->name, parent);
+
+    Element_addChild(parent, element);
+
+    return element;
 }
 
 struct Element
 {
     char * name;
     struct Element * parent;
+    struct Element ** children;
+    int childCount;
 };
 
 struct Element * Element_construct(char * name, struct Element * parent)
@@ -171,6 +178,8 @@ struct Element * Element_construct(char * name, struct Element * parent)
     strcpy(this->name, name);
 
     this->parent = parent;
+    this->children = NULL;
+    this->childCount = 0;
 
     return this;
 }
@@ -195,6 +204,27 @@ unsigned char Element_isSame(struct Element * this, struct Element * that)
 struct Element * Element_getParent(struct Element * this)
 {
     return this->parent;
+}
+
+void Element_addChild(struct Element * this, struct Element * child)
+{
+    int index;
+
+    struct Element ** children = malloc(sizeof(struct Element *) * (this->childCount + 1));
+
+    for (index = 0; index < this->childCount; ++index) {
+        children[index] = this->children[index];
+    }
+
+    children[this->childCount] = child;
+
+    if ( 0 != this->childCount ) {
+        free(this->children);
+    }
+
+    this->children = children;
+
+    this->childCount = this->childCount + 1;
 }
 
 struct Document
