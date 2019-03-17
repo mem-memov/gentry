@@ -105,7 +105,12 @@ struct Tag * Tag_construct(char * name, unsigned char isClosing)
 {
     struct Tag * this = malloc(sizeof(struct Tag));
 
-    this->name = name;
+    int nameLength = strlen(name);
+    this->name = malloc(sizeof(unsigned char) * (nameLength + 1));
+    strcpy(this->name, name);
+
+    printf("%s\n", this->name);
+
     this->isClosing = isClosing;
 
     return this;
@@ -150,8 +155,7 @@ int main(int argc, char *argv[])
         if ( '>' == character ) {
             tagDetected = 0;
             characters[tagLength] = '\0';
-            tags[tagCount] = Tag_construct(characters, isTagClosing); // TO cOPY
-            printf("%s \n", characters);
+            tags[tagCount] = Tag_construct(characters, isTagClosing); 
             continue;
         }
         if ( tagDetected && 0 == tagLength && '/' == character ) {
