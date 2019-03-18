@@ -3,35 +3,45 @@
 #include <string.h>
 
 struct FilePath;
+struct File;
+struct Tag;
+struct Element;
+struct Document;
+struct DocumentBuilder;
+struct Generator;
+
 struct FilePath * FilePath_construct(const char * root, const char * relative);
 void FilePath_destruct(struct FilePath * this);
 char * FilePath_composeFullPath(struct FilePath * this);
 
-struct File;
 struct File * File_construct(char * path);
 void File_destruct(struct File * this);
 unsigned char File_hasNextCharacter(struct File * this);
 unsigned char File_getNextCharacter(struct File * this);
 
-struct Tag;
 struct Tag * Tag_construct(char * name, unsigned char isClosing);
 void Tag_destruct(struct Tag * this);
 unsigned char Tag_canCreateElement(struct Tag * this);
 struct Element * Tag_createElement(struct Tag * this, struct Element * parent);
 
-struct Element;
 struct Element * Element_construct(char * name, struct Element * parent);
 void Element_destruct(struct Element * this);
 unsigned char Element_isSame(struct Element * this, struct Element * that);
 struct Element * Element_getParent(struct Element * this);
 void Element_addChild(struct Element * this, struct Element * child);
 
-struct Document;
+struct Document * Document_construct();
+void Document_destruct(struct Document * this);
+void Document_addTag(struct Document * this, struct Tag * tag);
+void Document_writeText(struct Document * this, unsigned char character);
+void Document_generateCode(struct Document * this, struct Generator * generator);
 
-struct DocumentBuilder;
 struct DocumentBuilder * DocumentBuilder_construct(struct File * file);
 void DocumentBuilder_destruct(struct DocumentBuilder * this);
 struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this);
+
+struct Generator * Generator_construct();
+void Generator_destruct(struct Generator * this);
 
 struct FilePath
 {
@@ -320,6 +330,11 @@ void Document_writeText(struct Document * this, unsigned char character)
     }
 }
 
+void Document_generateCode(struct Document * this, struct Generator * generator)
+{
+
+}
+
 struct DocumentBuilder
 {
     struct File * file;
@@ -388,6 +403,24 @@ struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this)
     return document;
 }
 
+struct Generator
+{
+
+};
+
+struct Generator * Generator_construct()
+{
+    struct Generator * this = malloc(sizeof(struct Generator));
+
+    return this;
+}
+
+void Generator_destruct(struct Generator * this)
+{
+    free(this);
+    this = NULL;
+}
+
 int main(int argc, char *argv[])
 {
     char * rootPath = argv[1];
@@ -397,7 +430,11 @@ int main(int argc, char *argv[])
     struct File * file = File_construct( FilePath_composeFullPath(path) );
     struct DocumentBuilder * builder = DocumentBuilder_construct(file);
     struct Document * document = DocumentBuilder_createDocument(builder);
+    struct Generator * generator = Generator_construct();
 
+    Document_generateCode(document, generator);
+
+    Generator_destruct(generator);
     Document_destruct(document);
     DocumentBuilder_destruct(builder);
     File_destruct(file);
