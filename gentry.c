@@ -188,7 +188,17 @@ struct Element * Element_construct(char * name, struct Element * parent)
 
 void Element_destruct(struct Element * this)
 {
+    int index;
+
+    for (index = 0; index < this->childCount; ++index) {
+        Element_destruct(this->children[index]);
+    }
+
     free(this->name);
+
+    if ( NULL != this->text ) {
+        free(this->text);
+    }
 
     free(this);
     this = NULL;
@@ -284,6 +294,12 @@ struct Document * Document_construct()
 
 void Document_destruct(struct Document * this)
 {
+    Element_destruct(this->root);
+
+    if ( NULL != this->lastElement) {
+        Element_destruct(this->lastElement);
+    }
+
     free(this);
     this = NULL;
 }
