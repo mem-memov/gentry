@@ -29,6 +29,7 @@ void Element_destruct(struct Element * this);
 unsigned char Element_isSame(struct Element * this, struct Element * that);
 struct Element * Element_getParent(struct Element * this);
 void Element_addChild(struct Element * this, struct Element * child);
+void Element_generateCode(struct Element * this, struct Generator * generator);
 
 struct Document * Document_construct();
 void Document_destruct(struct Document * this);
@@ -286,6 +287,11 @@ void Element_appendCharacter(struct Element * this, char character)
     printf("%s\n", this->text);
 }
 
+void Element_generateCode(struct Element * this, struct Generator * generator)
+{
+    
+}
+
 struct Document
 {
     struct Element * root;
@@ -332,7 +338,7 @@ void Document_writeText(struct Document * this, unsigned char character)
 
 void Document_generateCode(struct Document * this, struct Generator * generator)
 {
-
+    
 }
 
 struct DocumentBuilder
