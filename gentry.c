@@ -439,18 +439,22 @@ struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this)
 
 struct Generator
 {
-
+    struct Class * class;
 };
 
-struct Generator * Generator_construct()
+struct Generator * Generator_construct(struct Class * class)
 {
     struct Generator * this = malloc(sizeof(struct Generator));
+
+    this->class = class;
 
     return this;
 }
 
 void Generator_destruct(struct Generator * this)
 {
+    Class_destruct(this->class);
+
     free(this);
     this = NULL;
 }
