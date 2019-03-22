@@ -10,6 +10,7 @@ struct Document;
 struct DocumentBuilder;
 struct Generator;
 struct Text;
+struct Type;
 struct Property;
 struct Properties;
 struct Method;
@@ -51,6 +52,12 @@ struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this);
 struct Generator * Generator_construct();
 void Generator_destruct(struct Generator * this);
 
+
+struct Type * Type_construct(char * name);
+void Type_destruct(struct Type * this);
+
+struct Property * Property_construct(struct Type * type, char * name);
+void Property_destruct(struct Property * this);
 
 struct Properties * Properties_construct();
 void Properties_destruct(struct Properties * this);
@@ -453,11 +460,52 @@ struct Text
     char ** lines;
 };
 
-struct Property
+struct Type
 {
-    char * type;
     char * name;
 };
+
+struct Type * Type_construct(char * name)
+{
+    struct Type * this = malloc(sizeof(struct Type));
+
+    this->name = name;
+
+    return this;
+}
+
+void Type_destruct(struct Type * this)
+{
+    free(this->name);
+
+    free(this);
+    this = NULL;
+}
+
+struct Property
+{
+    struct Type * type;
+    char * name;
+};
+
+struct Property * Property_construct(struct Type * type, char * name)
+{
+    struct Property * this = malloc(sizeof(struct Property));
+
+    this->type = type;
+    this->name = name;
+
+    return this;
+}
+
+void Property_destruct(struct Property * this)
+{
+    Type_destruct(this->type);
+    free(this->name);
+
+    free(this);
+    this = NULL;
+}
 
 struct Properties
 {
@@ -482,7 +530,7 @@ void Properties_destruct(struct Properties * this)
 
 struct Argument
 {
-    char * type;
+    struct Type * type;
     char * name;
 };
 
@@ -494,7 +542,7 @@ struct Arguments
 
 struct Method
 {
-    char * type;
+    struct Type * type;
     char * name;
     struct Arguments * arguments;
 };
