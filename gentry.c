@@ -9,6 +9,13 @@ struct Element;
 struct Document;
 struct DocumentBuilder;
 struct Generator;
+struct Text;
+struct Property;
+struct Properties;
+struct Method;
+struct Methods;
+struct Class;
+
 
 struct FilePath * FilePath_construct(const char * root, const char * relative);
 void FilePath_destruct(struct FilePath * this);
@@ -43,6 +50,20 @@ struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this);
 
 struct Generator * Generator_construct();
 void Generator_destruct(struct Generator * this);
+
+
+struct Properties * Properties_construct();
+void Properties_destruct(struct Properties * this);
+
+struct Methods * Methods_construct();
+void Methods_destruct(struct Methods * this);
+
+struct Class * Class_construct(
+    struct Properties * properties,
+    struct Methods * methods
+);
+void Class_destruct(struct Class * this);
+
 
 struct FilePath
 {
@@ -427,6 +448,105 @@ void Generator_destruct(struct Generator * this)
     this = NULL;
 }
 
+struct Text
+{
+    char ** lines;
+};
+
+struct Property
+{
+    char * type;
+    char * name;
+};
+
+struct Properties
+{
+    struct Property ** items;
+    int length;
+};
+
+struct Properties * Properties_construct()
+{
+    struct Properties * this = malloc(sizeof(struct Properties));
+
+    this->length = 0;
+
+    return this;
+}
+
+void Properties_destruct(struct Properties * this)
+{
+    free(this);
+    this = NULL;
+}
+
+struct Argument
+{
+    char * type;
+    char * name;
+};
+
+struct Arguments
+{
+    struct Agrument ** items;
+    int length;
+};
+
+struct Method
+{
+    char * type;
+    char * name;
+    struct Arguments * arguments;
+};
+
+struct Methods
+{
+    struct Method ** items;
+    int length;
+};
+
+struct Methods * Methods_construct()
+{
+    struct Methods * this = malloc(sizeof(struct Methods));
+
+    this->length = 0;
+
+    return this;
+}
+
+void Methods_destruct(struct Methods * this)
+{
+    free(this);
+    this = NULL;
+}
+
+struct Class
+{
+    struct Properties * properties;
+    struct Methods * methods;
+};
+
+struct Class * Class_construct(
+    struct Properties * properties,
+    struct Methods * methods
+) {
+    struct Class * this = malloc(sizeof(struct Class));
+
+    this->properties = properties;
+    this->methods = methods;
+
+    return this;
+}
+
+void Class_destruct(struct Class * this)
+{
+    Properties_destruct(this->properties);
+    Methods_destruct(this->methods);
+
+    free(this);
+    this = NULL;
+}
+
 int main(int argc, char *argv[])
 {
     char * rootPath = argv[1];
@@ -436,7 +556,13 @@ int main(int argc, char *argv[])
     struct File * file = File_construct( FilePath_composeFullPath(path) );
     struct DocumentBuilder * builder = DocumentBuilder_construct(file);
     struct Document * document = DocumentBuilder_createDocument(builder);
-    struct Generator * generator = Generator_construct();
+
+    struct Generator * generator = Generator_construct(
+        Class_construct(
+            Properties_construct(),
+            Methods_construct()
+        )
+    );
 
     Document_generateCode(document, generator);
 
