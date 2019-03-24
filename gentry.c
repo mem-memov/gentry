@@ -38,6 +38,7 @@ unsigned char Element_isSame(struct Element * this, struct Element * that);
 struct Element * Element_getParent(struct Element * this);
 void Element_addChild(struct Element * this, struct Element * child);
 void Element_generateCode(struct Element * this, struct Generator * generator);
+unsigned char Element_hasName(struct Element * this, char * name);
 
 struct Document * Document_construct();
 void Document_destruct(struct Document * this);
@@ -53,14 +54,18 @@ struct Generator * Generator_construct();
 void Generator_destruct(struct Generator * this);
 void Generator_useElement(struct Generator * this, struct Element * element);
 
-struct Type * Type_construct(char * name);
+struct Type * Type_construct(struct Element * element);
 void Type_destruct(struct Type * this);
 
-struct Property * Property_construct(struct Type * type, char * name);
+struct Property * Property_construct();
 void Property_destruct(struct Property * this);
+void Property_setType(struct Property * this, struct Element * element);
+void Property_setName(struct Property * this, struct Element * element);
 
 struct Properties * Properties_construct();
 void Properties_destruct(struct Properties * this);
+void Properties_add(struct Properties * this);
+void Properties_useElement(struct Properties * this, struct Element * element);
 
 struct Methods * Methods_construct();
 void Methods_destruct(struct Methods * this);
@@ -70,6 +75,8 @@ struct Class * Class_construct(
     struct Methods * methods
 );
 void Class_destruct(struct Class * this);
+void Class_addProperty(struct Class * this);
+void Class_useElement(struct Class * this, struct Element * element);
 
 
 struct FilePath
@@ -327,6 +334,15 @@ void Element_generateCode(struct Element * this, struct Generator * generator)
     }
 }
 
+unsigned char Element_hasName(struct Element * this, char * name)
+{
+    if ( 0 == strcmp(this->name, name) ) {
+        return 1;
+    }
+
+    return 0;
+}
+
 struct Document
 {
     struct Element * root;
@@ -468,7 +484,11 @@ void Generator_destruct(struct Generator * this)
 
 void Generator_useElement(struct Generator * this, struct Element * element)
 {
+    if (Element_hasName(element, "property")) {
+        Class_addProperty(this->class);
+    }
 
+    Class_useElement(this->class, element);
 }
 
 struct Text
@@ -478,21 +498,21 @@ struct Text
 
 struct Type
 {
-    char * name;
+    struct Element * name;
 };
 
-struct Type * Type_construct(char * name)
+struct Type * Type_construct(struct Element * element)
 {
     struct Type * this = malloc(sizeof(struct Type));
 
-    this->name = name;
+    this->name = element;
 
     return this;
 }
 
 void Type_destruct(struct Type * this)
 {
-    free(this->name);
+    Element_destruct(this->name);
 
     free(this);
     this = NULL;
@@ -501,15 +521,15 @@ void Type_destruct(struct Type * this)
 struct Property
 {
     struct Type * type;
-    char * name;
+    struct Element * name;
 };
 
-struct Property * Property_construct(struct Type * type, char * name)
+struct Property * Property_construct()
 {
     struct Property * this = malloc(sizeof(struct Property));
 
-    this->type = type;
-    this->name = name;
+    this->type = NULL;
+    this->name = NULL;
 
     return this;
 }
@@ -517,10 +537,20 @@ struct Property * Property_construct(struct Type * type, char * name)
 void Property_destruct(struct Property * this)
 {
     Type_destruct(this->type);
-    free(this->name);
+    Element_destruct(this->name);
 
     free(this);
     this = NULL;
+}
+
+void Property_setType(struct Property * this, struct Element * element)
+{
+    this->type = Type_construct(element);
+}
+
+void Property_setName(struct Property * this, struct Element * element)
+{
+    this->name = element;
 }
 
 struct Properties
@@ -533,6 +563,7 @@ struct Properties * Properties_construct()
 {
     struct Properties * this = malloc(sizeof(struct Properties));
 
+    this->items = NULL;
     this->length = 0;
 
     return this;
@@ -540,8 +571,49 @@ struct Properties * Properties_construct()
 
 void Properties_destruct(struct Properties * this)
 {
+    int index;
+
+    for (index = 0; index < this->length; ++index)
+    {
+        Property_destruct(this->items[index]);
+    }
+
+    free(this->items);
+
     free(this);
     this = NULL;
+}
+
+void Properties_add(struct Properties * this)
+{
+    struct Property ** items = malloc(sizeof(struct Property *) * (this->length + 1));
+
+    int index;
+
+    for (index = 0; index < this->length; ++index)
+    {
+        items[index] = this->items[index];
+    }
+
+    items[this->length] = Property_construct();
+
+    free(this->items);
+
+    this->items = items;
+    this->length = this->length + 1;
+}
+
+void Properties_useElement(struct Properties * this, struct Element * element)
+{
+    struct Property * property = this->items[this->length - 1];
+
+    if ( Element_hasName(element, "name") ) {
+        Property_setName(property, element);
+    }
+
+    if ( Element_hasName(element, "type") ) {
+        Property_setType(property, element);
+    }
 }
 
 struct Argument
@@ -588,6 +660,8 @@ struct Class
 {
     struct Properties * properties;
     struct Methods * methods;
+    unsigned char isAddingProperty;
+    unsigned char isAddingMethod;
 };
 
 struct Class * Class_construct(
@@ -598,6 +672,8 @@ struct Class * Class_construct(
 
     this->properties = properties;
     this->methods = methods;
+    this->isAddingProperty = 0;
+    this->isAddingMethod = 0;
 
     return this;
 }
@@ -609,6 +685,21 @@ void Class_destruct(struct Class * this)
 
     free(this);
     this = NULL;
+}
+
+void Class_addProperty(struct Class * this)
+{
+    this->isAddingProperty = 1;
+    this->isAddingMethod = 1;
+
+    Properties_add(this->properties);
+}
+
+void Class_useElement(struct Class * this, struct Element * element)
+{
+    if (this->isAddingProperty) {
+        Properties_useElement(this->properties, element);
+    }
 }
 
 int main(int argc, char *argv[])
