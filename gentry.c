@@ -53,6 +53,7 @@ struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this);
 struct Generator * Generator_construct();
 void Generator_destruct(struct Generator * this);
 void Generator_useElement(struct Generator * this, struct Element * element);
+void Generator_write(struct Generator * this);
 
 struct Type * Type_construct(struct Element * element);
 void Type_destruct(struct Type * this);
@@ -66,6 +67,7 @@ struct Properties * Properties_construct();
 void Properties_destruct(struct Properties * this);
 void Properties_add(struct Properties * this);
 void Properties_useElement(struct Properties * this, struct Element * element);
+void Properties_write(struct Properties * this);
 
 struct Methods * Methods_construct();
 void Methods_destruct(struct Methods * this);
@@ -77,6 +79,7 @@ struct Class * Class_construct(
 void Class_destruct(struct Class * this);
 void Class_addProperty(struct Class * this);
 void Class_useElement(struct Class * this, struct Element * element);
+void Class_write(struct Class * this);
 
 
 struct FilePath
@@ -485,6 +488,11 @@ void Generator_useElement(struct Generator * this, struct Element * element)
     Class_useElement(this->class, element);
 }
 
+void Generator_write(struct Generator * this)
+{
+    Class_write(this->class);
+}
+
 struct Text
 {
     char ** lines;
@@ -606,6 +614,11 @@ void Properties_useElement(struct Properties * this, struct Element * element)
     }
 }
 
+void Properties_write(struct Properties * this)
+{
+
+}
+
 struct Argument
 {
     struct Type * type;
@@ -695,6 +708,11 @@ void Class_useElement(struct Class * this, struct Element * element)
     }
 }
 
+void Class_write(struct Class * this)
+{
+    Properties_write(this->properties);
+}
+
 int main(int argc, char *argv[])
 {
     char * rootPath = argv[1];
@@ -713,6 +731,8 @@ int main(int argc, char *argv[])
     );
 
     Document_generateCode(document, generator);
+
+    Generator_write(generator);
 
     Generator_destruct(generator);
     Document_destruct(document);
