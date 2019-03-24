@@ -98,7 +98,6 @@ struct FilePath * FilePath_construct(const char * root, const char * relative)
 void FilePath_destruct(struct FilePath * this)
 {
     free(this);
-    this = NULL;
 }
 
 char * FilePath_composeFullPath(struct FilePath * this)
@@ -131,7 +130,6 @@ void File_destruct(struct File * this)
     free(this->path);    
 
     free(this);
-    this = NULL;
 }
 
 unsigned char File_hasNextCharacter(struct File * this)
@@ -182,7 +180,6 @@ void Tag_destruct(struct Tag * this)
     free(this->name);
 
     free(this);
-    this = NULL;
 }
 
 unsigned char Tag_canCreateElement(struct Tag * this)
@@ -247,7 +244,6 @@ void Element_destruct(struct Element * this)
     }
 
     free(this);
-    this = NULL;
 }
 
 unsigned char Element_isSame(struct Element * this, struct Element * that)
@@ -361,14 +357,14 @@ struct Document * Document_construct()
 
 void Document_destruct(struct Document * this)
 {
-    Element_destruct(this->root);
-
-    if ( NULL != this->lastElement) {
+    if ( Element_isSame(this->root, this->lastElement) ) {
+        Element_destruct(this->root);
+    } else {
+        Element_destruct(this->root);
         Element_destruct(this->lastElement);
     }
 
     free(this);
-    this = NULL;
 }
 
 void Document_addTag(struct Document * this, struct Tag * tag)
@@ -409,7 +405,6 @@ struct DocumentBuilder * DocumentBuilder_construct(struct File * file)
 void DocumentBuilder_destruct(struct DocumentBuilder * this)
 {
     free(this);
-    this = NULL;
 }
 
 struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this)
@@ -479,7 +474,6 @@ void Generator_destruct(struct Generator * this)
     Class_destruct(this->class);
 
     free(this);
-    this = NULL;
 }
 
 void Generator_useElement(struct Generator * this, struct Element * element)
@@ -513,7 +507,6 @@ struct Type * Type_construct(struct Element * element)
 void Type_destruct(struct Type * this)
 {
     free(this);
-    this = NULL;
 }
 
 struct Property
@@ -537,7 +530,6 @@ void Property_destruct(struct Property * this)
     Type_destruct(this->type);
 
     free(this);
-    this = NULL;
 }
 
 void Property_setType(struct Property * this, struct Element * element)
@@ -580,7 +572,6 @@ void Properties_destruct(struct Properties * this)
     }
 
     free(this);
-    this = NULL;
 }
 
 void Properties_add(struct Properties * this)
@@ -657,7 +648,6 @@ void Methods_destruct(struct Methods * this)
     }
 
     free(this);
-    this = NULL;
 }
 
 struct Class
@@ -688,7 +678,6 @@ void Class_destruct(struct Class * this)
     Methods_destruct(this->methods);
 
     free(this);
-    this = NULL;
 }
 
 void Class_addProperty(struct Class * this)
