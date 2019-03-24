@@ -21,6 +21,7 @@ struct Class;
 struct FilePath * FilePath_construct(const char * root, const char * relative);
 void FilePath_destruct(struct FilePath * this);
 char * FilePath_composeFullPath(struct FilePath * this);
+struct FilePath * FilePath_withExtension(struct FilePath * this, char * extension);
 
 struct File * File_construct(char * path);
 void File_destruct(struct File * this);
@@ -109,6 +110,12 @@ char * FilePath_composeFullPath(struct FilePath * this)
     char * path = malloc(sizeof(char) * (pathLength  + 1));
     strcat(path, this->root);
     strcat(path, this->relative);
+}
+
+struct FilePath * FilePath_withExtension(struct FilePath * this, char * extension)
+{
+    //TODO
+    return FilePath_construct(this->root, this->relative);
 }
 
 struct File {
