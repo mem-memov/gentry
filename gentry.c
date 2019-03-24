@@ -51,7 +51,7 @@ struct Document * DocumentBuilder_createDocument(struct DocumentBuilder * this);
 
 struct Generator * Generator_construct();
 void Generator_destruct(struct Generator * this);
-
+void Generator_useElement(struct Generator * this, struct Element * element);
 
 struct Type * Type_construct(char * name);
 void Type_destruct(struct Type * this);
@@ -317,7 +317,14 @@ void Element_appendCharacter(struct Element * this, char character)
 
 void Element_generateCode(struct Element * this, struct Generator * generator)
 {
-    
+    Generator_useElement(generator, this);
+
+    int index;
+
+    for (index = 0; index < this->childCount; ++index)
+    {
+        Element_generateCode(this->children[index], generator);
+    }
 }
 
 struct Document
@@ -366,7 +373,7 @@ void Document_writeText(struct Document * this, unsigned char character)
 
 void Document_generateCode(struct Document * this, struct Generator * generator)
 {
-    
+    Element_generateCode(this->root, generator);
 }
 
 struct DocumentBuilder
@@ -457,6 +464,11 @@ void Generator_destruct(struct Generator * this)
 
     free(this);
     this = NULL;
+}
+
+void Generator_useElement(struct Generator * this, struct Element * element)
+{
+
 }
 
 struct Text
