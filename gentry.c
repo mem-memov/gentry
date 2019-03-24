@@ -512,8 +512,6 @@ struct Type * Type_construct(struct Element * element)
 
 void Type_destruct(struct Type * this)
 {
-    Element_destruct(this->name);
-
     free(this);
     this = NULL;
 }
@@ -537,7 +535,6 @@ struct Property * Property_construct()
 void Property_destruct(struct Property * this)
 {
     Type_destruct(this->type);
-    Element_destruct(this->name);
 
     free(this);
     this = NULL;
@@ -578,7 +575,9 @@ void Properties_destruct(struct Properties * this)
         Property_destruct(this->items[index]);
     }
 
-    free(this->items);
+    if ( NULL != this->items ) {
+        free(this->items);
+    }
 
     free(this);
     this = NULL;
@@ -645,6 +644,7 @@ struct Methods * Methods_construct()
 {
     struct Methods * this = malloc(sizeof(struct Methods));
 
+    this->items = NULL;
     this->length = 0;
 
     return this;
@@ -652,6 +652,10 @@ struct Methods * Methods_construct()
 
 void Methods_destruct(struct Methods * this)
 {
+    if ( NULL != this->items ) {
+        free(this->items);
+    }
+
     free(this);
     this = NULL;
 }
